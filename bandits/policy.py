@@ -106,6 +106,37 @@ class UCBPolicy(Policy):
         else:
             return np.random.choice(check)
 
+class UCBTunedPolicy(UCBPolicy):
+    """
+    The Upper Confidence Bound algorithm (UCB1). It applies an exploration
+    factor to the expected value of each arm which can influence a greedy
+    selection strategy to more intelligently explore less confident options.
+    """
+    def __init__(self, c, max_bernoulli_variance = 1/4):        
+        super(UCBTunedPolicy, self).__init__(c)        
+        self.max_bernoulli_variance = max_bernoulli_variance
+
+    def __str__(self):
+        return 'UCBTuned (c={}, max_bernoulli_variance={})'.format(self.c, self.max_bernoulli_variance)
+
+    def choose(self, agent):
+
+        variance_factor = agent.value_estimates - np.square(agent.value_estimates)        
+        machine_variance = variance_factor + np.sqrt(2*np.log(agent.t+1)/agent.action_attempts)
+        tuned_factor = np.minimum(self.max_bernoulli_variance, machine_variance)
+
+        exploration = (np.log(agent.t+1) / agent.action_attempts)*tuned_factor
+        exploration[np.isnan(exploration)] = 0
+        exploration = np.power(exploration, 1/self.c)
+
+        q = agent.value_estimates + exploration
+        action = np.argmax(q)
+        check = np.where(q == action)[0]
+        if len(check) == 0:
+            return action
+        else:
+            return np.random.choice(check)
+
 
 class SoftmaxPolicy(Policy):
     """
