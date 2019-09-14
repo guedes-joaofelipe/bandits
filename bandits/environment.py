@@ -7,48 +7,75 @@ from bandits.agent import BetaAgent
 
 
 class Environment(object):
+    """ A environment is a combination o a bandit and a number of agents in 
+    which experiments are made. An environment object can run a number of trials 
+    and take the average of a number of experiments.
+    """
+
     def __init__(self, bandit, agents, label='Multi-Armed Bandit'):
+        """ Initializes Environment object
+        
+        Arguments:
+            bandit {Bandit} -- bandit object
+            agents {list(Agent)} -- list of agents to be part of experimentations
+        
+        Keyword Arguments:
+            label {str} -- (default: {'Multi-Armed Bandit'})
+        """
         self.bandit = bandit
         self.agents = agents
         self.label = label
 
     def reset(self):
+        """ resets bandit and all agents
+        """
         self.bandit.reset()
         for agent in self.agents:
             agent.reset()
 
     def run(self, trials=100, experiments=1):
+        """ Runs experiments on environment 
+        
+        Keyword Arguments:
+            trials {int} -- number of trials (default: {100})
+            experiments {int} -- number of experiments to be averaged (default: {1})
+        
+        Returns:
+            [np.array] -- average scores by agents for each trial
+            [np.array] -- average optimal of scores for each agent
+            
+        """
         scores = np.zeros((trials, len(self.agents)))
         optimal = np.zeros_like(scores)
 
         for _ in range(experiments):
             self.reset()
-            for t in range(trials):
-                for i, agent in enumerate(self.agents):
+            for trial_index in range(trials):
+                for agent_index, agent in enumerate(self.agents):
                     action = agent.choose()
                     reward, is_optimal = self.bandit.pull(action)
                     agent.observe(reward)
 
-                    scores[t, i] += reward
+                    scores[trial_index, agent_index] += reward
                     if is_optimal:
-                        optimal[t, i] += 1
+                        optimal[trial_index, agent_index] += 1
 
         return scores / experiments, optimal / experiments
 
-    def plot_results(self, scores, optimal):
+    def plot_results(self, scores, optimal, figsize=(16,10)):
         sns.set_style('white')
         sns.set_context('talk')
-        plt.subplot(2, 1, 1)
-        plt.title(self.label)
-        plt.plot(scores)
-        plt.ylabel('Average Reward')
-        plt.legend(self.agents, loc=4)
-        plt.subplot(2, 1, 2)
-        plt.plot(optimal * 100)
-        plt.ylim(0, 100)
-        plt.ylabel('% Optimal Action')
-        plt.xlabel('Time Step')
-        plt.legend(self.agents, loc=4)
+        fig, ax = plt.subplots(ncols=1, nrows=2, sharex=True, figsize=figsize)
+        ax[0].set_title(self.label)
+        ax[0].plot(scores)
+        ax[0].set_ylabel('Average Reward')
+        ax[0].legend(self.agents, loc=4)
+        
+        ax[1].plot(optimal * 100)
+        ax[1].set_ylim(0, 100)
+        ax[1].set_ylabel('% Optimal Action')
+        ax[1].set_xlabel('Time Step')
+        ax[1].legend(self.agents, loc=4)
         sns.despine()
         plt.show()
 

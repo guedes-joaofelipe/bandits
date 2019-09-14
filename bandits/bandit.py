@@ -3,28 +3,41 @@ import pymc3 as pm
 
 
 class MultiArmedBandit(object):
-    """
-    A Multi-armed Bandit
+    """ Base class for a Multi-armed Bandit
     """
     def __init__(self, k):
-        self.k = k
+        """ Initializes MultiArmedBandit object
+        
+        Arguments:            
+            k {int} -- number of arms 
+        """
+        self.k = k 
         self.action_values = np.zeros(k)
         self.optimal = 0
 
     def reset(self):
+        """Resets actions and optimal values to zero"""
         self.action_values = np.zeros(self.k)
         self.optimal = 0
 
     def pull(self, action):
+        """ Base method for other child classes
+        
+        Arguments:
+            action {[type]} -- [description]
+        
+        Returns:
+            ([int], [boolean]) -- action index, test if action is optimal
+        """
         return 0, True
 
 
 class GaussianBandit(MultiArmedBandit):
+    """ Gaussian bandits model the reward of a given arm as normal distribution 
+        with provided mean and standard deviation.
     """
-    Gaussian bandits model the reward of a given arm as normal distribution with
-    provided mean and standard deviation.
-    """
-    def __init__(self, k, mu=0, sigma=1):
+
+    def __init__(self, k, mu=0, sigma=1):        
         super(GaussianBandit, self).__init__(k)
         self.mu = mu
         self.sigma = sigma

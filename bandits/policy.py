@@ -2,13 +2,21 @@ import numpy as np
 
 
 class Policy(object):
-    """
-    A policy prescribes an action to be taken based on the memory of an agent.
+    """ Base class for Policy. A policy prescribes an action to be taken based
+    on the memory of an agent.
     """
     def __str__(self):
         return 'generic policy'
 
     def choose(self, agent):
+        """ Chooses action index for an agent
+        
+        Arguments:
+            agent {Agent} -- agent to take the action based on a policy
+        
+        Returns:
+            [int] -- action index
+        """
         return 0
 
 
@@ -20,6 +28,11 @@ class EpsilonGreedyPolicy(Policy):
     subset is selected.
     """
     def __init__(self, epsilon):
+        """ Initializes EpsilonGreedyPolicy object
+        
+        Arguments:            
+            epsilon {float} -- random action probability in (0,1)
+        """
         self.epsilon = epsilon
 
     def __str__(self):
@@ -70,6 +83,11 @@ class UCBPolicy(Policy):
     selection strategy to more intelligently explore less confident options.
     """
     def __init__(self, c):
+        """ Initializes UCBPolicy object
+        
+        Arguments:            
+            c {float} -- degree of exploration control (c > 0)
+        """
         self.c = c
 
     def __str__(self):
