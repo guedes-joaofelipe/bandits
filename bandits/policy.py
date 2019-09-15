@@ -19,6 +19,9 @@ class Policy(object):
         """
         return 0
 
+    def reset(self):
+        # Only applicable to epsilon-greedy with annealing
+        pass
 
 class EpsilonGreedyPolicy(Policy):
     """
@@ -27,18 +30,31 @@ class EpsilonGreedyPolicy(Policy):
     multiple actions are tied for best choice, then a random action from that
     subset is selected.
     """
-    def __init__(self, epsilon):
-        """ Initializes EpsilonGreedyPolicy object
+    def __init__(self, epsilon, annealing=False, annealing_rate=.95):
+        """Initializes EpsilonGreedyPolicy object
         
         Arguments:            
             epsilon {float} -- random action probability in (0,1)
+        
+        Keyword Arguments:
+            annealing {bool} -- whether or not epsilon decreases (default: {False})
+            annealing_rate {float} -- rate at which epsilon decreases (default: {.95})
         """
         self.epsilon = epsilon
+        self.init_epsilon = epsilon
+        self.annealing = annealing
+        self.annealing_rate = annealing_rate        
 
     def __str__(self):
-        return '\u03B5-greedy (\u03B5={})'.format(self.epsilon)
+        if (not self.annealing):
+            return '\u03B5-greedy (\u03B5={})'.format(self.init_epsilon)
+        return '\u03B5-greedy (\u03B5={}, annealing={}, annealing_rate={})'.format(
+                    self.init_epsilon, self.annealing, self.annealing_rate)
 
-    def choose(self, agent):
+    def choose(self, agent):  
+        if (self.annealing):
+            self.anneal()
+
         if np.random.random() < self.epsilon:
             return np.random.choice(len(agent.value_estimates))
         else:
@@ -49,6 +65,11 @@ class EpsilonGreedyPolicy(Policy):
             else:
                 return np.random.choice(check)
 
+    def anneal(self):
+        self.epsilon *= self.annealing_rate
+
+    def reset(self):
+        self.epsilon = self.init_epsilon
 
 class GreedyPolicy(EpsilonGreedyPolicy):
     """
@@ -116,9 +137,9 @@ class SoftmaxPolicy(Policy):
     def __str__(self):
         return 'SM'
 
-    def choose(self, agent):
+    def choose(self, agent):        
         a = agent.value_estimates
-        pi = np.exp(a) / np.sum(np.exp(a))
+        pi = np.exp(a) / np.sum(np.exp(a)) # prob of taking action a on time t
         cdf = np.cumsum(pi)
         s = np.random.random()
         return np.where(s < cdf)[0][0]

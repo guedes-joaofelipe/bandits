@@ -37,6 +37,7 @@ class Agent(object):
         self.action_attempts[:] = 0
         self.last_action = None
         self.t = 0
+        self.policy.reset()
 
     def choose(self):
         """ Selects action based on agent's policy
@@ -77,6 +78,18 @@ class GradientAgent(Agent):
     It effectively learns a preference for one action over another.
     """    
     def __init__(self, bandit, policy, prior=0, alpha=0.1, baseline=True):
+        """ Initializes GradientAgent object
+        
+        Arguments:
+            bandit {Bandit} -- bandit object
+            policy {Policy} -- policy object
+        
+        Keyword Arguments:
+            prior {int} -- prior preference (default: {0})
+            alpha {float} -- step size > 0 (default: {0.1})
+            baseline {bool} -- whether or not to account the average of all 
+                    rewards up through and including time t (default: {True})
+        """
         super(GradientAgent, self).__init__(bandit, policy, prior)
         self.alpha = alpha
         self.baseline = baseline
